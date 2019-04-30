@@ -82,6 +82,8 @@ func GetType(v interface{}) string {
 		return "string"
 	case "map[string]interface {}":
 		return "struct"
+	case "[]interface {}":
+		return "array"
 	default:
 		return "interface{}"
 	}
