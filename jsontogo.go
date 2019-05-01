@@ -17,10 +17,8 @@ type TemplateData struct {
 	JsonMap  map[string]interface{}
 }
 
-const structTemplate = `{{.Typename}} struct {{"{"}}
-{{range $index, $element := .JsonMap}}
-	{{title $index}} {{getType $element $index}} ` + "`json:\"{{$index}}\"`" + `
-{{end}}
+const structTemplate = `{{.Typename}} struct {{"{"}}{{range $index, $element := .JsonMap}}
+	{{title $index}} {{getType $element $index}} ` + "`json:\"{{$index}}\"`" + `{{end}}
 {{"}"}}`
 
 func jsonToGo(jsonString []byte, typename string) ([]byte, error) {
@@ -124,15 +122,18 @@ func GetArrayType(v []interface{}) string {
 	}
 
 	if len(typesSet) == 1 && typesSet["map[string]interface {}"] {
-		obj := map[string]interface{}{
-			"text": 1,
-		}
+		obj := map[string]interface{}{}
 		for _, val := range v {
 			for property, value := range val.(map[string]interface{}) {
 				obj[property] = value
 			}
 		}
-		//TODO: CAll map to struct for obj variable to get struct definiton
+		//call map to struct for obj variable to get struct definiton
+		if structBytes, err := mapToStruct(TemplateData{Typename: "", JsonMap: obj}); err == nil {
+			return "[]" + string(structBytes)
+		} else {
+			log.Println("GetType error: ", err)
+		}
 	}
 
 	if len(typesSet) == 1 {
