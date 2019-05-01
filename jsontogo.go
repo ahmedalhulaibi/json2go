@@ -27,7 +27,7 @@ func jsonToGo(jsonString []byte, typename string) ([]byte, error) {
 	//This is to identify float64 vs int before outputting struct
 	re := regexp.MustCompile(`[0-9]*\.[0-9]*`)
 	jsonString = re.ReplaceAll(jsonString, []byte("1.1"))
-	log.Println("jsonToGo replace: ", string(jsonString))
+	//log.Println("jsonToGo replace: ", string(jsonString))
 
 	var tData TemplateData
 	if typename == "" {
@@ -40,7 +40,7 @@ func jsonToGo(jsonString []byte, typename string) ([]byte, error) {
 	if err := json.Unmarshal(jsonString, &tData.JsonMap); err != nil {
 		return jsonString, err
 	}
-	log.Println(tData.JsonMap)
+	//log.Println(tData.JsonMap)
 
 	structBytes, err := mapToStruct(tData)
 	if err != nil {
@@ -71,9 +71,9 @@ func isDecimal(dec string) bool {
 }
 
 func GetType(v interface{}, key string) string {
-	log.Println("GetType", reflect.TypeOf(v))
+	//log.Println("GetType", reflect.TypeOf(v))
 	typename := fmt.Sprint(reflect.TypeOf(v))
-	log.Println("GetType typename ", typename)
+	//log.Println("GetType typename ", typename)
 
 	switch typename {
 	case "float64", "bool", "string":
@@ -87,7 +87,7 @@ func GetType(v interface{}, key string) string {
 		return "ERROR"
 	case "[]interface {}":
 		//log.Printf("GetType first element value type: %v\n", reflect.TypeOf(v.([]interface{})[0]))
-		log.Printf("GetType first element value type: %v\n", GetArrayType(v.([]interface{})))
+		//log.Printf("GetType first element value type: %v\n", GetArrayType(v.([]interface{})))
 		return GetArrayType(v.([]interface{}))
 	default:
 		return "interface{}"
@@ -98,7 +98,7 @@ func GetSimpleType(v interface{}) string {
 	typename := fmt.Sprint(reflect.TypeOf(v))
 	switch typename {
 	case "float64":
-		log.Printf("GetType element value: %v\n", v.(float64))
+		//log.Printf("GetType element value: %v\n", v.(float64))
 		if isDecimal(fmt.Sprintf("%v", v)) {
 			return typename
 		}
@@ -124,7 +124,7 @@ func GetArrayType(v []interface{}) string {
 	}
 
 	if len(typesSet) == 2 && typesSet["float64"] && typesSet["int"] {
-		return "float64"
+		return "[]float64"
 	}
 
 	if len(typesSet) == 1 && typesSet["map[string]interface {}"] {
