@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/alecthomas/template"
+	"text/template"
 )
 
 type TemplateData struct {
@@ -17,9 +17,9 @@ type TemplateData struct {
 	JsonMap  map[string]interface{}
 }
 
-const structTemplate = `type {{.Typename}} struct {{"{"}}
+const structTemplate = `{{.Typename}} struct {{"{"}}
 {{range $index, $element := .JsonMap}}
-	{{title $index}} {{getType $element}} ` + "`json:\"{{lower $index}}\"`" + `
+	{{title $index}} {{getType $element $index}} ` + "`json:\"{{$index}}\"`" + `
 {{end}}
 {{"}"}}`
 
@@ -43,7 +43,8 @@ func jsonToGo(jsonString []byte, typename string) ([]byte, error) {
 	}
 	log.Println(tData.JsonMap)
 
-	return mapToStruct(tData)
+	structBytes, err := mapToStruct(tData)
+	return append([]byte("type "), structBytes...), err
 }
 
 func mapToStruct(tData TemplateData) ([]byte, error) {
@@ -65,10 +66,32 @@ func isDecimal(dec string) bool {
 	return re.MatchString(dec)
 }
 
-func GetType(v interface{}) string {
+func GetType(v interface{}, key string) string {
 	log.Println("GetType", reflect.TypeOf(v))
 	typename := fmt.Sprint(reflect.TypeOf(v))
 	log.Println("GetType typename ", typename)
+
+	switch typename {
+	case "float64", "bool", "string":
+		return GetSimpleType(v)
+	case "map[string]interface {}":
+		if structBytes, err := mapToStruct(TemplateData{Typename: "", JsonMap: v.(map[string]interface{})}); err == nil {
+			return string(structBytes)
+		} else {
+			log.Println("GetType error: ", err)
+		}
+		return "ERROR"
+	case "[]interface {}":
+		//log.Printf("GetType first element value type: %v\n", reflect.TypeOf(v.([]interface{})[0]))
+		log.Printf("GetType first element value type: %v\n", GetArrayType(v.([]interface{})))
+		return GetArrayType(v.([]interface{}))
+	default:
+		return "interface{}"
+	}
+}
+
+func GetSimpleType(v interface{}) string {
+	typename := fmt.Sprint(reflect.TypeOf(v))
 	switch typename {
 	case "float64":
 		log.Printf("GetType element value: %v\n", v.(float64))
@@ -80,11 +103,42 @@ func GetType(v interface{}) string {
 		return typename
 	case "string":
 		return "string"
-	case "map[string]interface {}":
-		return "struct"
-	case "[]interface {}":
-		return "array"
-	default:
-		return "interface{}"
 	}
+	return "ERROR"
+}
+
+func GetArrayType(v []interface{}) string {
+	typesSet := map[string]bool{}
+	var typename string
+	for _, val := range v {
+		typename = fmt.Sprint(reflect.TypeOf(val))
+		switch typename {
+		case "float64", "bool", "string":
+			typename = GetSimpleType(val)
+		}
+		typesSet[typename] = true
+	}
+
+	if len(typesSet) == 2 && typesSet["float64"] && typesSet["int"] {
+		return "float64"
+	}
+
+	if len(typesSet) == 1 && typesSet["map[string]interface {}"] {
+		obj := map[string]interface{}{
+			"text": 1,
+		}
+		for _, val := range v {
+			for property, value := range val.(map[string]interface{}) {
+				obj[property] = value
+			}
+		}
+		//TODO: CAll map to struct for obj variable to get struct definiton
+	}
+
+	if len(typesSet) == 1 {
+		for key := range typesSet {
+			return "[]" + key
+		}
+	}
+	return "[]interface{}"
 }
