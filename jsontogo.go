@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"go/format"
 	"log"
 	"reflect"
 	"regexp"
@@ -22,7 +23,7 @@ const structTemplate = `{{.Typename}} struct {{"{"}}{{range $index, $element := 
 {{"}"}}`
 
 func jsonToGo(jsonString []byte, typename string) ([]byte, error) {
-	//Edit JSON string before unmarshal and change all numeric with decimal to 1.1
+	//Edit JSON string before unmarshal and change all numeric decimal values to 1.1
 	//This is to identify float64 vs int before outputting struct
 	re := regexp.MustCompile(`[0-9]*\.[0-9]*`)
 	jsonString = re.ReplaceAll(jsonString, []byte("1.1"))
@@ -42,7 +43,12 @@ func jsonToGo(jsonString []byte, typename string) ([]byte, error) {
 	log.Println(tData.JsonMap)
 
 	structBytes, err := mapToStruct(tData)
-	return append([]byte("type "), structBytes...), err
+	if err != nil {
+		return jsonString, err
+	}
+	goStructCode := append([]byte("type "), structBytes...)
+
+	return format.Source(goStructCode)
 }
 
 func mapToStruct(tData TemplateData) ([]byte, error) {
