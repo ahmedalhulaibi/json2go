@@ -17,7 +17,7 @@ type TemplateData struct {
 	JsonMap  map[string]interface{}
 }
 
-const structTemplate = `{{.Typename}} struct {{"{"}}{{range $index, $element := .JsonMap}}
+const structTemplate = `{{title .Typename}} struct {{"{"}}{{range $index, $element := .JsonMap}}
 	{{title $index}} {{getType $element $index}} ` + "`json:\"{{$index}}\"`" + `{{end}}
 {{"}"}}`
 
