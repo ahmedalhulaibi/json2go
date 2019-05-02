@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"go/format"
-	"log"
 	"reflect"
 	"regexp"
 	"strings"
@@ -22,7 +21,7 @@ const structTemplate = `{{.Typename}} struct {{"{"}}{{range $index, $element := 
 	{{title $index}} {{getType $element $index}} ` + "`json:\"{{$index}}\"`" + `{{end}}
 {{"}"}}`
 
-func jsonToGo(jsonString []byte, typename string) ([]byte, error) {
+func JsonToGo(jsonString []byte, typename string) ([]byte, error) {
 	//Edit JSON string before unmarshal and change all numeric decimal values to 1.1
 	//This is to identify float64 vs int before outputting struct
 	re := regexp.MustCompile(`[0-9]*\.[0-9]*`)
@@ -53,7 +52,7 @@ func jsonToGo(jsonString []byte, typename string) ([]byte, error) {
 
 func mapToStruct(tData TemplateData) ([]byte, error) {
 	funcMap := template.FuncMap{
-		"getType": GetType,
+		"getType": getType,
 		"title":   strings.Title,
 		"lower":   strings.ToLower,
 	}
@@ -70,31 +69,31 @@ func isDecimal(dec string) bool {
 	return re.MatchString(dec)
 }
 
-func GetType(v interface{}, key string) string {
+func getType(v interface{}, key string) string {
 	//log.Println("GetType", reflect.TypeOf(v))
 	typename := fmt.Sprint(reflect.TypeOf(v))
 	//log.Println("GetType typename ", typename)
 
 	switch typename {
 	case "float64", "bool", "string":
-		return GetSimpleType(v)
+		return getSimpleType(v)
 	case "map[string]interface {}":
 		if structBytes, err := mapToStruct(TemplateData{Typename: "", JsonMap: v.(map[string]interface{})}); err == nil {
 			return string(structBytes)
 		} else {
-			log.Println("GetType error: ", err)
+			//log.Println("GetType error: ", err)
 		}
 		return "ERROR"
 	case "[]interface {}":
 		//log.Printf("GetType first element value type: %v\n", reflect.TypeOf(v.([]interface{})[0]))
-		//log.Printf("GetType first element value type: %v\n", GetArrayType(v.([]interface{})))
-		return GetArrayType(v.([]interface{}))
+		//log.Printf("GetType first element value type: %v\n", getArrayType(v.([]interface{})))
+		return getArrayType(v.([]interface{}))
 	default:
 		return "interface{}"
 	}
 }
 
-func GetSimpleType(v interface{}) string {
+func getSimpleType(v interface{}) string {
 	typename := fmt.Sprint(reflect.TypeOf(v))
 	switch typename {
 	case "float64":
@@ -111,14 +110,14 @@ func GetSimpleType(v interface{}) string {
 	return "ERROR"
 }
 
-func GetArrayType(v []interface{}) string {
+func getArrayType(v []interface{}) string {
 	typesSet := map[string]bool{}
 	var typename string
 	for _, val := range v {
 		typename = fmt.Sprint(reflect.TypeOf(val))
 		switch typename {
 		case "float64", "bool", "string":
-			typename = GetSimpleType(val)
+			typename = getSimpleType(val)
 		}
 		typesSet[typename] = true
 	}
@@ -138,7 +137,7 @@ func GetArrayType(v []interface{}) string {
 		if structBytes, err := mapToStruct(TemplateData{Typename: "", JsonMap: obj}); err == nil {
 			return "[]" + string(structBytes)
 		} else {
-			log.Println("GetType error: ", err)
+			//log.Println("GetType error: ", err)
 		}
 	}
 
