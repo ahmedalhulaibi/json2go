@@ -1,4 +1,7 @@
 # JSON-2-Go
+
+[![Pipeline](https://gitlab.com/ahmedalhulaibi/json2go/badges/master/pipeline.svg)](https://gitlab.com/ahmedalhulaibi/json2go/pipelines)[![codecov](https://codecov.io/gl/ahmedalhulaibi/json2go/branch/master/graph/badge.svg)](https://codecov.io/gl/ahmedalhulaibi/json2go)
+
 This tool converts JSON into a Go type definition. This is a Go implementation of Matt Holt's JSON-to-Go.
 
 # Installation
