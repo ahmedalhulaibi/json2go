@@ -2,8 +2,9 @@
 This tool converts JSON into a Go type definition. This is a Go implementation of Matt Holt's JSON-to-Go.
 
 # Installation
+This project is hosted on gitlab and mirrored to github
 
-`go get -u github.com/ahmedalhulaibi/json2go/...`
+`go get -u gitlab.com/ahmedalhulaibi/json2go/...`
 
 # Usage
 
