@@ -25,3 +25,5 @@ type Astronaut struct {
 
 
 ```
+
+Nested JSON objects are resolved to inline type definitions

@@ -32,12 +32,10 @@ func main() {
 		if gostruct, err := json2go.JsonToGo(json, *typename); err == nil {
 			fmt.Fprintf(os.Stdout, "%s", string(gostruct))
 		} else {
-			log.Println("json2go error: ", err)
-			os.Exit(1)
+			log.Fatalf("json2go error: %s\n\n%s\n", err.Error(), string(gostruct))
 		}
 	} else {
-		log.Println("json2go error: ", err)
-		os.Exit(1)
+		log.Fatalln("json2go error: ", err)
 	}
 
 	os.Exit(0)
