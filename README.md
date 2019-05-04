@@ -12,7 +12,16 @@ This project is hosted on gitlab and mirrored to github
 # Usage
 
 ```
-curl http://api.open-notify.org/astros.json | json2go-cli --typename Astronaut
+curl http://api.open-notify.org/astros.json -s | json2go-cli --typename Astronaut
+
+type Astronaut struct {
+	Message string `json:"message"`
+	Number  int    `json:"number"`
+	People  []struct {
+		Craft string `json:"craft"`
+		Name  string `json:"name"`
+	} `json:"people"`
+}
 
 
 ```
