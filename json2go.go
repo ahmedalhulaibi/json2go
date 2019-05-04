@@ -1,4 +1,4 @@
-package jsontogo
+package json2go
 
 import (
 	"bytes"
